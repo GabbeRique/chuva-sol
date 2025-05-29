@@ -16,10 +16,11 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(false); 
 
   const API_KEY = '9e039949';
-  const WOEID = 455824;
+  /*const WOEI = 455824;*/
   
-
+  
   useEffect(() => {
+    var WOEID = 455824; // WOEID para São Paulo, Brasil
     axios.get(`https://cors-anywhere.herokuapp.com/https://api.hgbrasil.com/weather?key=${API_KEY}&woeid=${WOEID}`)
       .then(response => setWeather(response.data.results))
       .catch(error => console.error("Erro ao buscar clima:", error))
@@ -90,6 +91,20 @@ const lightStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+    margin: 10,
+    paddingBottom: 20,
   },
   card: {
     backgroundColor: '#fff',
@@ -99,6 +114,20 @@ const lightStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 350,
     elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 6,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+    margin: 90,
+    paddingBottom: 20,
   },
   city: {
     fontSize: 22,
