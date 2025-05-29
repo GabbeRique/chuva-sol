@@ -13,14 +13,14 @@ import axios from 'axios';
 export default function App() {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false); // controla o tema
+  const [darkMode, setDarkMode] = useState(false); 
 
-  const API_KEY = '7c83f62e';
+  const API_KEY = '9e039949';
   const WOEID = 455824;
   
 
   useEffect(() => {
-    axios.get(`https://api.hgbrasil.com/weather?key=${API_KEY}&woeid=${WOEID}`)
+    axios.get(`https://cors-anywhere.herokuapp.com/https://api.hgbrasil.com/weather?key=${API_KEY}&woeid=${WOEID}`)
       .then(response => setWeather(response.data.results))
       .catch(error => console.error("Erro ao buscar clima:", error))
       .finally(() => setLoading(false));
@@ -49,7 +49,7 @@ export default function App() {
     <View style={themeStyles.container}>
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} />
 
-      {/* Botão de troca de tema */}
+      
       <TouchableOpacity
         onPress={() => setDarkMode(!darkMode)}
         style={themeStyles.themeButton}
