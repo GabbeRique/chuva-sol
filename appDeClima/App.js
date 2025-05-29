@@ -6,26 +6,57 @@ import {
   Image,
   ActivityIndicator,
   StatusBar,
-  TouchableOpacity
+  TouchableOpacity,
+  TextInput,
+  Keyboard
 } from 'react-native';
 import axios from 'axios';
 
 export default function App() {
   const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [cityInput, setCityInput] = useState('');
+  const [cityName, setCityName] = useState('São Paulo');
+  const [showCities, setShowCities] = useState(false);
 
-  const API_KEY = '9e039949';
-  /*const WOEI = 455824;*/
-  
-  
+  const API_KEY = 'ee50e040';
+  const uso24Horas = true;
+
+  const fetchWeatherByCity = async (city) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `https://api.hgbrasil.com/weather?key=${API_KEY}&city_name=${encodeURIComponent(city)}`
+      );
+      setWeather(res.data.results);
+    } catch (error) {
+      console.error('Erro ao buscar clima:', error);
+      setWeather(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    var WOEID = 455824; // WOEID para São Paulo, Brasil
-    axios.get(`https://cors-anywhere.herokuapp.com/https://api.hgbrasil.com/weather?key=${API_KEY}&woeid=${WOEID}`)
-      .then(response => setWeather(response.data.results))
-      .catch(error => console.error("Erro ao buscar clima:", error))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchWeatherByCity(cityName);
+  }, [cityName]);
+
+  const handleSearch = () => {
+    if (cityInput.trim()) {
+      setCityName(cityInput.trim());
+      Keyboard.dismiss();
+    }
+  };
+
+  const formatarHora = (horario) => {
+    if (!uso24Horas || !horario) return horario;
+    const [horaMin, sufixo] = horario.split(' ');
+    let [h, m] = horaMin.split(':').map(Number);
+    if (sufixo?.toLowerCase() === 'pm' && h < 12) h += 12;
+    if (sufixo?.toLowerCase() === 'am' && h === 12) h = 0;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
 
   const themeStyles = darkMode ? darkStyles : lightStyles;
 
@@ -50,15 +81,59 @@ export default function App() {
     <View style={themeStyles.container}>
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} />
 
-      
       <TouchableOpacity
         onPress={() => setDarkMode(!darkMode)}
         style={themeStyles.themeButton}
       >
         <Text style={themeStyles.themeButtonText}>
-          {darkMode ? '🌞' : '🌙'}
+          {darkMode ? '🌕' : '☀️'}
         </Text>
       </TouchableOpacity>
+
+      <View style={themeStyles.inputContainer}>
+        <TextInput
+          placeholder="Digite a cidade"
+          placeholderTextColor={darkMode ? '#aaa' : '#666'}
+          value={cityInput}
+          onChangeText={setCityInput}
+          onSubmitEditing={handleSearch}
+          style={themeStyles.input}
+        />
+        <TouchableOpacity onPress={handleSearch} style={themeStyles.searchButton}>
+          <Text style={themeStyles.searchButtonText}>Buscar</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity onPress={() => setShowCities(!showCities)} style={{ marginBottom: 10 }}>
+        <Text style={{
+          backgroundColor: darkMode ? '#444' : '#ddd',
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 20,
+          margin: 4,
+          color: darkMode ? '#fff' : '#000'
+        }}>{showCities ? 'Esconder Cidades 🔼' : 'Mostrar Cidades 🔽'}</Text>
+      </TouchableOpacity>
+
+      {showCities && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 20 }}>
+          {['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador', 'Recife', 'Jaboatão Dos Guararapes'].map((city) => (
+            <TouchableOpacity
+              key={city}
+              onPress={() => setCityName(city)}
+              style={{
+                backgroundColor: darkMode ? '#444' : '#ddd',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+                margin: 4
+              }}
+            >
+              <Text style={{ color: darkMode ? '#fff' : '#000' }}>{city}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <View style={themeStyles.card}>
         <Text style={themeStyles.city}>{weather.city}</Text>
@@ -70,18 +145,22 @@ export default function App() {
         <Text style={themeStyles.description}>{weather.description}</Text>
 
         <View style={themeStyles.row}>
-          <Text style={themeStyles.info}>🌅 (Nascer Do Sol) {weather.sunrise}            (Antes Do meio Dia)</Text>
-          <Text style={themeStyles.info}>🌇 (Pôr Do Sol) {weather.sunset}                  (Depois Do Meio Dia)</Text>
+          <Text style={themeStyles.info}>🌅 Nascer do sol: {formatarHora(weather.sunrise)}</Text>
+          <Text style={themeStyles.info}>🌇 Pôr do sol: {formatarHora(weather.sunset)}</Text>
         </View>
 
         <View style={themeStyles.row}>
-          <Text style={themeStyles.info}>💨 (Velocidade Do Vento)                          {weather.wind_speedy}</Text>
-          <Text style={themeStyles.info}>💧 (Humidade Do Ar)                                {weather.humidity}%</Text>
+          <Text style={themeStyles.info}>💨 Velocidade do vento:                                {weather.wind_speedy}</Text>
+          <Text style={themeStyles.info}>💧 Umidade:                               {weather.humidity}%</Text>
         </View>
       </View>
     </View>
   );
 }
+
+// Os estilos (lightStyles e darkStyles) permanecem os mesmos que você já tinha definido.
+
+
 
 // 🟡 Tema Claro
 const lightStyles = StyleSheet.create({
@@ -91,20 +170,34 @@ const lightStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderColor: '#fff',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    marginTop: 100,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 10,
-    overflow: 'hidden',
-    margin: 10,
-    paddingBottom: 20,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    color: '#000',
+  },
+  searchButton: {
+    backgroundColor: '#217CAF',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   card: {
     backgroundColor: '#fff',
@@ -195,6 +288,34 @@ const darkStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    marginTop: 100,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderColor: '#666',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#333',
+    color: '#fff',
+  },
+  searchButton: {
+    backgroundColor: '#217CAF',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   card: {
     backgroundColor: '#1E1E1E',
